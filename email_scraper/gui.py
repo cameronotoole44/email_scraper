@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from database import DatabaseManager
-from script import GmailManager, JOB_KEYWORDS
+from email_scraper.database import DatabaseManager
+from email_scraper.script import GmailManager, JOB_KEYWORDS
 
 class JobSearchGUI:
     def __init__(self, root):
