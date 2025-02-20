@@ -58,11 +58,11 @@ CLIENT_SECRET_JSON=your_secret
 6. run the app:
 
 ```bash
--for windows
-- python main.py
--for git
-- python main.py
-- for linux/mac
+# windows
+python main.py
+# git bash
+python main.py
+# linux/mac
 python3 main.py
 ```
 
