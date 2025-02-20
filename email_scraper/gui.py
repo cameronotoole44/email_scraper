@@ -127,7 +127,7 @@ class JobSearchGUI:
             self.load_emails()
             self.update_statistics()
         except Exception as e:
-            messagebox.showerror("Error", f"error grabbing emails: {e}")
+            messagebox.showerror("error", f"error grabbing emails: {e}")
 
 def main():
     root = tk.Tk()
