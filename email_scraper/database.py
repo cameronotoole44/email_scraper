@@ -26,7 +26,21 @@ class DatabaseManager:
 
     def insert_email(self, subject, sender, received_date, label):
         try:
+            # check if the email already exists !!
             with self.conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id FROM job_emails 
+                    WHERE subject = %s 
+                    AND recieved_date = %s
+                    AND sender = %s
+                """, (subject, received_date, sender))
+                
+                existing = cur.fetchone()
+                if existing:
+                    print(f"ミ(ノ_ _)ノ skipping any duplicates: {subject}")
+                    return None
+
+                # no dupes, insert the new email
                 cur.execute("""
                     INSERT INTO job_emails (subject, sender, recieved_date, label)
                     VALUES (%s, %s, %s, %s)
