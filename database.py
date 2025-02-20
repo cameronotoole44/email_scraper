@@ -19,7 +19,7 @@ class DatabaseManager:
     def connect(self):
         try:
             self.conn = psycopg2.connect(**self.db_params)
-            print("(b^_^)b database connected successfully")
+            print("database connected (b^_^)b ")
         except Exception as e:
             print(f"(+_+) database connection error: {e}")
             raise
@@ -49,7 +49,7 @@ class DatabaseManager:
                 """)
                 return cur.fetchall()
         except Exception as e:
-            print(f"❌ Error fetching emails: {e}")
+            print(f"(+_+) error fetching emails: {e}")
             return []
 
     def update_email_label(self, email_id, new_label):
@@ -66,6 +66,37 @@ class DatabaseManager:
             print(f"(+_+) error updating email label: {e}")
             self.conn.rollback()
             return False
+        
+    def get_statistics(self):
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM job_emails")
+                total_count = cur.fetchone()[0]
+                
+                cur.execute("""
+                    SELECT label, COUNT(*) as count 
+                    FROM job_emails 
+                    GROUP BY label 
+                    ORDER BY count DESC
+                """)
+                label_counts = cur.fetchall()
+                
+                # last 7 days*
+                cur.execute("""
+                    SELECT COUNT(*) 
+                    FROM job_emails 
+                    WHERE recieved_date >= NOW() - INTERVAL '7 days'
+                """)
+                recent_count = cur.fetchone()[0]
+                
+                return {
+                    'total': total_count,
+                    'by_label': label_counts,
+                    'recent': recent_count
+                }
+        except Exception as e:
+            print(f"(+_+) error getting statistics: {e}")
+            return None    
 
     def close(self):
         if self.conn:
