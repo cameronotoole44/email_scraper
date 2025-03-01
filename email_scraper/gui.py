@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from email_scraper.database import DatabaseManager
-from email_scraper.script import GmailManager, JOB_KEYWORDS
+from email_scraper.script import GmailManager, JOB_KEYWORDS, JOB_RELATED_KEYWORDS
 
 class JobSearchGUI:
     def __init__(self, root):
@@ -35,14 +35,26 @@ class JobSearchGUI:
         scrollbar.grid(row=1, column=2, sticky=(tk.N, tk.S))
         self.tree.configure(yscrollcommand=scrollbar.set)
 
-        label_frame = ttk.LabelFrame(main_frame, text="modify label", padding="5")
-        label_frame.grid(row=2, column=0, columnspan=2, pady=10, sticky=(tk.W, tk.E))
+        action_frame = ttk.LabelFrame(main_frame, text="actions", padding="5")
+        action_frame.grid(row=2, column=0, columnspan=2, pady=10, sticky=(tk.W, tk.E))
+        
+        label_frame = ttk.Frame(action_frame)
+        label_frame.grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        
+        ttk.Label(label_frame, text="label:").grid(row=0, column=0, padx=5)
         self.label_var = tk.StringVar()
         label_combo = ttk.Combobox(label_frame, textvariable=self.label_var)
         label_combo['values'] = tuple(JOB_KEYWORDS.keys())
-        label_combo.grid(row=0, column=0, padx=5)
+        label_combo.grid(row=0, column=1, padx=5)
+        ttk.Button(label_frame, text="update label", command=self.update_label).grid(row=0, column=2, padx=5)
 
-        ttk.Button(label_frame, text="update label", command=self.update_label).grid(row=0, column=1, padx=5)
+        delete_frame = ttk.Frame(action_frame)
+        delete_frame.grid(row=0, column=1, padx=20, pady=5, sticky=tk.E)
+        ttk.Button(delete_frame, text="delete from database", command=self.delete_emails, 
+                  style="Delete.TButton").grid(row=0, column=0, padx=5)
+        
+        self.root.style = ttk.Style()
+        self.root.style.configure("Delete.TButton", foreground="red")
 
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
@@ -57,6 +69,33 @@ class JobSearchGUI:
         self.stats_text.config(state='disabled')
         
         self.update_statistics()
+    
+    def delete_emails(self):
+        # deletes emails ONLY from the database not the actual inbox
+        selected_items = self.tree.selection()
+        if not selected_items:
+            messagebox.showwarning("selection required", "please select an email to delete")
+            return
+
+        # confirm before deleting
+        count = len(selected_items)
+        confirm = messagebox.askyesno(
+            "confirm deletion",
+            f"are you sure you want to delete {count} email{'s' if count > 1 else ''} from the database?\n\n" +
+            "this will only remove them from your tracking database, not from your Gmail inbox."
+        )
+        
+        if not confirm:
+            return
+            
+        deleted_count = 0
+        for item in selected_items:
+            email_id = self.tree.item(item)['tags'][0]
+            if self.db.delete_email(email_id):
+                deleted_count += 1
+        
+        self.load_emails()
+        messagebox.showinfo("deletion complete", f"removed {deleted_count} email{'s' if deleted_count > 1 else ''} from database")
         
     def update_statistics(self):
         stats = self.db.get_statistics()
@@ -87,7 +126,7 @@ class JobSearchGUI:
                 sender,
                 label
             ), tags=(str(email_id),))
-            self.update_statistics()
+        self.update_statistics()
 
     def update_label(self):
         selected_items = self.tree.selection()
@@ -104,6 +143,8 @@ class JobSearchGUI:
             email_id = self.tree.item(item)['tags'][0]
             if self.db.update_email_label(email_id, new_label):
                 self.tree.set(item, 'Label', new_label)
+        
+        self.update_statistics()
 
     def fetch_new_emails(self):
         if not self.gmail.service and not self.gmail.authenticate():
@@ -115,17 +156,19 @@ class JobSearchGUI:
             new_emails_count = 0
 
             for email in new_emails:
+                # only insert if email is job related
+                message_id = email.get('message_id', None)
                 if self.db.insert_email(
                     email['subject'],
                     email['sender'],
                     email['received_date'],
-                    email['label']
+                    email['label'],
+                    message_id
                 ):
                     new_emails_count += 1
 
             messagebox.showinfo("complete", f"added {new_emails_count} new emails")
             self.load_emails()
-            self.update_statistics()
         except Exception as e:
             messagebox.showerror("error", f"error grabbing emails: {e}")
 
