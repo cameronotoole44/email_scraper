@@ -24,7 +24,7 @@ class DatabaseManager:
             print(f"(+_+) database connection error: {e}")
             raise
 
-    def insert_email(self, subject, sender, received_date, label):
+    def insert_email(self, subject, sender, received_date, label, message_id=None):
         try:
             # check if the email already exists !!
             with self.conn.cursor() as cur:
@@ -41,11 +41,18 @@ class DatabaseManager:
                     return None
 
                 # no dupes, insert the new email
-                cur.execute("""
-                    INSERT INTO job_emails (subject, sender, recieved_date, label)
-                    VALUES (%s, %s, %s, %s)
-                    RETURNING id;
-                """, (subject, sender, received_date, label))
+                if message_id:
+                    cur.execute("""
+                        INSERT INTO job_emails (subject, sender, recieved_date, label, message_id)
+                        VALUES (%s, %s, %s, %s, %s)
+                        RETURNING id;
+                    """, (subject, sender, received_date, label, message_id))
+                else:
+                    cur.execute("""
+                        INSERT INTO job_emails (subject, sender, recieved_date, label)
+                        VALUES (%s, %s, %s, %s)
+                        RETURNING id;
+                    """, (subject, sender, received_date, label))
                 self.conn.commit()
                 return cur.fetchone()[0]
         except Exception as e:
@@ -78,6 +85,21 @@ class DatabaseManager:
                 return True
         except Exception as e:
             print(f"(+_+) error updating email label: {e}")
+            self.conn.rollback()
+            return False
+    
+    def delete_email(self, email_id):
+        # delete an email from the database by its ID
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("""
+                    DELETE FROM job_emails 
+                    WHERE id = %s
+                """, (email_id,))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(f"(+_+) error deleting email: {e}")
             self.conn.rollback()
             return False
         
