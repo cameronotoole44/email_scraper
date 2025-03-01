@@ -14,40 +14,91 @@ load_dotenv()
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 JOB_KEYWORDS = {
-    "Application": [
+    "application": [
         "application received",
         "thank you for applying",
         "your application",
         "we have received your application",
-        "application confirmation"
+        "application confirmation",
+        "application submitted",
+        "applied",
+        "we've received your application",
+        "resume received",
+        "job application",
+        "talent acquisition",
+        "we've received your interest",
+        "your candidacy",
+        "application status",
+        "applicant tracking"
     ],
-    "Interview": [
+    "interview": [
         "interview",
         "schedule",
         "meeting",
         "hiring manager",
         "technical assessment",
         "coding challenge",
-        "phone screen"
+        "phone screen",
+        "virtual interview",
+        "in-person interview",
+        "technical interview",
+        "screening call",
+        "interview invitation",
+        "meet the team",
+        "video meeting",
+        "zoom interview",
+        "talent assessment",
+        "online assessment",
+        "virtual meeting",
+        "take-home assignment",
+        "behavioral interview"
     ],
-    "Offer": [
+    "offer": [
         "offer letter",
         "congratulations",
         "we are pleased to offer",
         "formal offer",
-        "compensation package"
+        "compensation package",
+        "job offer",
+        "welcome to the team",
+        "employment offer",
+        "position offer",
+        "benefits package",
+        "employment contract",
+        "salary offer",
+        "start date",
+        "we're excited to offer",
+        "offer of employment"
     ],
-    "Rejection": [
+    "rejection": [
         "we regret to inform you",
         "not selected",
         "unfortunately",
         "not moving forward",
         "other candidates",
         "best of luck",
-        "future opportunities"
+        "future opportunities",
+        "position has been filled",
+        "moving forward with other candidates",
+        "not a match",
+        "we decided to proceed with",
+        "no longer under consideration",
+        "we appreciate your interest",
+        "candidate pool",
+        "better suited candidates",
+        "thank you for your time",
+        "not proceeding"
     ],
-    "Other": []
+    "other": []  # only job related emails that dont have an assigned category get defaulted to other
 }
+
+JOB_RELATED_KEYWORDS = [
+    "job", "career", "position", "employment", "opportunity", "recruiting",
+    "recruiter", "talent", "hiring", "hr department", "human resources",
+    "application", "apply", "applied", "role", "interview", "resume", 
+    "cover letter", "candidate", "recruitment", "employer", "company career",
+    "hiring team", "staff", "team member", "onboarding", "work", "vacancy"
+]
 
 class GmailManager:
     def __init__(self):
@@ -112,18 +163,26 @@ class GmailManager:
                     received_date = datetime.fromtimestamp(int(msg_data['internalDate'])/1000)
                     
                     snippet = msg_data.get("snippet", "").lower()
-                    label = "Other"
-                    for category, keywords in JOB_KEYWORDS.items():
-                        if any(keyword.lower() in snippet for keyword in keywords):
-                            label = category
-                            break
+                    subject_lower = subject.lower()
+                    combined_text = f"{subject_lower} {snippet}"
 
-                    processed_emails.append({
-                        'subject': subject,
-                        'sender': sender,
-                        'received_date': received_date,
-                        'label': label
-                    })
+                    # check if the email is job-related
+                    is_job_related = any(keyword.lower() in combined_text for keyword in JOB_RELATED_KEYWORDS)
+                    
+                    if is_job_related:
+                        label = "Other"  # default to "other"
+                        for category, keywords in JOB_KEYWORDS.items():
+                            if category != "Other" and any(keyword.lower() in combined_text for keyword in keywords):
+                                label = category
+                                break
+
+                        processed_emails.append({
+                            'subject': subject,
+                            'sender': sender,
+                            'received_date': received_date,
+                            'label': label,
+                            'message_id': msg["id"]
+                        })
 
                 except Exception as e:
                     print(f"error processing message {msg['id']}: {e}")
