@@ -172,9 +172,9 @@ class GmailManager:
                     is_job_related = any(keyword.lower() in combined_text for keyword in JOB_RELATED_KEYWORDS)
                     
                     if is_job_related:
-                        label = "Other"  # default to "other"
+                        label = "other"  # default to "other"
                         for category, keywords in JOB_KEYWORDS.items():
-                            if category != "Other" and any(keyword.lower() in combined_text for keyword in keywords):
+                            if category != "other" and any(keyword.lower() in combined_text for keyword in keywords):
                                 label = category
                                 break
 
