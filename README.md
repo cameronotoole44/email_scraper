@@ -1,22 +1,40 @@
-# email scraper to enhance job search ᕙ(ಠ_ಠ‶)ᕗ
+# Email scraper to enhance job search ᕙ(ಠ_ಠ‶)ᕗ
 
-a Python script that helps you keep track of your job search by automatically organizing emails into categories like applications, interviews, offers, and rejections
+A Python tool that helps you track your job applications by automatically organizing emails into categories like **applications**, **interviews**, **offers**, and **rejections** with built-in search, filtering, and stats
 
-- python
-- postgreSQL
-- Google Cloud & Gmail API to fetch emails
-- OAuth2 for secure authentication
-- Tkinter for a simple GUI
+### Tech used
 
-if you want to use it for your own, just:
+- Python
+- PostgreSQL
+- Gmail API (Google Cloud)
+- OAuth2 authentication
+- Tkinter for the GUI
 
-1. clone the repo
+---
+
+## Version 2.0
+
+Major improvements in usability and data orginization
+
+### What's new?
+
+- **search bar** quickly find emails by subject or sender
+- **label filter** show only applications, only interviews, only offers, etc.
+- **pipeline stats** view your job funnel:
+  - applications → interviews → offers
+  - includes response rate and offer rate
+- improved duplicate detection (now uses Gmail `message_id`)
+- cleaner UI layout + better statistics panel
+
+If you want to use it for your own, just:
+
+1. Clone the repo
 
 ```bash
 git clone [https://github.com/cameronotoole44/email_scraper]
 ```
 
-2. set up your virtual environment (venv)
+2. Set up your virtual environment (venv)
 
 ```bash
 # windows
@@ -27,7 +45,7 @@ python -m venv venv
 python3 -m venv venv
 ```
 
-3. activate your environment
+3. Activate your environment
 
 ```bash
 # windows
@@ -38,13 +56,13 @@ source venv/Scripts/activate
 source venv/bin/activate
 ```
 
-4. install the requirements
+4. Install the requirements
 
 ```bash
 pip install -r requirements.txt
 ```
 
-5. create your .env file with your credentials:
+5. Create your .env file with your credentials:
 
 ```bash
 DB_NAME=your_db_name
@@ -55,7 +73,7 @@ DB_PORT=5432
 CLIENT_SECRET_JSON=your_secret
 ```
 
-6. run the app:
+6. Run the app:
 
 ```bash
 # windows
@@ -66,10 +84,10 @@ python main.py
 python3 main.py
 ```
 
-note, make sure you have:
+Note, make sure you have:
 
-- postgreSQL installed and running
-- google cloud project set up with Gmail API enabled
-- your google cloud OAuth credentials
+- PostgreSQL installed and running
+- Google Cloud project set up with Gmail API enabled
+- Your google cloud OAuth credentials
 
-happy job hunting! ᕦ( ᴼ ڡ ᴼ )ᕤ
+Happy job hunting! ᕦ( ᴼ ڡ ᴼ )ᕤ
